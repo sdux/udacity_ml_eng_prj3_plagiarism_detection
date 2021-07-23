@@ -3,6 +3,7 @@ import json
 import os
 import pandas as pd
 import torch
+import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
 
@@ -114,8 +115,22 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
     
+    parser.add_argument('--lr', type=float, default=0.003, metavar='LR',
+                        help='learning rate (default: 0.001)')
+    
     ## TODO: Add args for the three model parameters: input_features, hidden_dim, output_dim
     # Model Parameters
+    
+    # expected input is 4
+    parser.add_argument('--input_features', type=int, default=2, metavar='in_feat',
+                        help='input features (default: 2)')
+    
+    parser.add_argument('--hidden_dim', type=int, default=10, metavar='hid_dim',
+                        help='hidden dimensions (default: 10)')
+    
+    # Output expected binary, 1 or 0, plagiarized or not
+    parser.add_argument('--output_dim', type=int, default=1, metavar='out_dim',
+                        help='hidden dimensions (default: 10)')    
     
     
     # args holds all passed-in arguments
@@ -135,23 +150,26 @@ if __name__ == '__main__':
     ## TODO:  Build the model by passing in the input params
     # To get params from the parser, call args.argument_name, ex. args.epochs or ards.hidden_dim
     # Don't forget to move your model .to(device) to move to GPU , if appropriate
-    model = None
+    model = BinaryClassifier(args.input_features, args.hidden_dim, args.output_dim).to(device)
 
     ## TODO: Define an optimizer and loss function for training
-    optimizer = None
-    criterion = None
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    criterion = nn.BCELoss()
 
     # Trains the model (given line of code, which calls the above training function)
     train(model, train_loader, args.epochs, criterion, optimizer, device)
-
+    
+    # Given: save the parameters used to construct the model
+    #save_model_params(model, args.model_dir)
+    
     ## TODO: complete in the model_info by adding three argument names, the first is given
     # Keep the keys of this dictionary as they are 
     model_info_path = os.path.join(args.model_dir, 'model_info.pth')
     with open(model_info_path, 'wb') as f:
         model_info = {
             'input_features': args.input_features,
-            'hidden_dim': <add_arg>,
-            'output_dim': <add_arg>,
+            'hidden_dim': args.hidden_dim,
+            'output_dim': args.output_dim,
         }
         torch.save(model_info, f)
         
